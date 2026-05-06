@@ -171,4 +171,4 @@ Contributions, issues, and feature requests are welcome. This project is activel
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](LICENSE) for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
