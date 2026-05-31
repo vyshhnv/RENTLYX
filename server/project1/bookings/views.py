@@ -24,6 +24,14 @@ from notifications.utils import create_notification
 # ── Logging ─────────────────────────────────────────────────────────────────
 logger = logging.getLogger('rentlyx')
 
+
+def payment_gateway_available():
+    return bool(
+        razorpay_client
+        and getattr(settings, "RZP_KEY_ID", "")
+        and getattr(settings, "RZP_KEY_SECRET", "")
+    )
+
 # ── Razorpay client ──────────────────────────────────────────────────────────
 try:
     razorpay_client = razorpay.Client(
@@ -66,7 +74,7 @@ class CreateBookingOrderView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            if not razorpay_client:
+            if not payment_gateway_available():
                 logger.error("Razorpay client not initialized")
                 return Response(
                     {"error": "Payment gateway is unavailable. Please try again later."},
@@ -151,6 +159,13 @@ class VerifyBookingPaymentView(APIView):
 
     def post(self, request):
         try:
+            if not payment_gateway_available():
+                logger.error("Payment verification requested while payment gateway is unavailable")
+                return Response(
+                    {"error": "Payment gateway is unavailable. Please try again later."},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+
             serializer = BookingVerifySerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             data = serializer.validated_data
@@ -367,22 +382,28 @@ class SellerBookingActionView(APIView):
             booking.save()
 
             refund_success = False
-            try:
-                razorpay_client.payment.refund(
-                    booking.razorpay_payment_id,
-                    {
-                        "amount": int(booking.token_amount * 100),
-                        "notes": {
-                            "reason":     "Seller rejected the booking",
-                            "booking_id": str(booking.id),
+            if payment_gateway_available() and booking.razorpay_payment_id:
+                try:
+                    razorpay_client.payment.refund(
+                        booking.razorpay_payment_id,
+                        {
+                            "amount": int(booking.token_amount * 100),
+                            "notes": {
+                                "reason":     "Seller rejected the booking",
+                                "booking_id": str(booking.id),
+                            }
                         }
-                    }
+                    )
+                    booking.status = 'refunded'
+                    booking.save()
+                    refund_success = True
+                except Exception as e:
+                    logger.error("Refund failed for booking %s: %s", booking.id, e)
+            else:
+                logger.warning(
+                    "Skipping automatic refund for booking %s because payment gateway is unavailable",
+                    booking.id,
                 )
-                booking.status = 'refunded'
-                booking.save()
-                refund_success = True
-            except Exception as e:
-                print(f"Refund failed for booking {booking.id}: {e}")
 
             # ── Notify buyer ──────────────────────────────────────────────
             create_notification(
@@ -495,6 +516,9 @@ class CancelBookingView(APIView):
 
         refund_success = False
         try:
+            if not payment_gateway_available() or not booking.razorpay_payment_id:
+                raise RuntimeError("Payment gateway is unavailable")
+
             razorpay_client.payment.refund(
                 booking.razorpay_payment_id,
                 {
@@ -508,7 +532,7 @@ class CancelBookingView(APIView):
             booking.status = 'refunded'
             refund_success = True
         except Exception as e:
-            print(f"Refund failed for booking {booking.id}: {e}")
+            logger.error("Refund failed for booking %s: %s", booking.id, e)
             booking.status = 'cancelled'
 
         booking.save()

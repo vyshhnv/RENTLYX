@@ -4,6 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaf
 import "leaflet/dist/leaflet.css";
 import { getProperty, updateProperty } from "../api/fetchApi";
 import Bar from "./Bar";
+import { API_BASE_URL as BASE_URL } from "../config/api";
+import { notifyError } from "../utils/notify";
 import {
   ArrowLeft, Upload, Save, Loader2, MapPin, Home, IndianRupee,
   CheckCircle, Calendar, FileText, X, Trash2, ImagePlus,
@@ -12,8 +14,6 @@ import {
 import L from "leaflet";
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
-const BASE_URL = "http://127.0.0.1:8000/api";
 
 let DefaultIcon = L.icon({
   iconUrl: icon, shadowUrl: iconShadow,
@@ -423,9 +423,15 @@ function EditProperty() {
     } catch (err) {
       console.error(err);
       const status = err.response?.status;
-      if (status === 403) { alert("Permission denied"); navigate("/seller/properties"); }
-      else if (status === 401) { alert("Session expired"); navigate("/seller/login"); }
-      else alert("Failed to update. Please try again.");
+      if (status === 403) {
+        notifyError("Permission denied.");
+        navigate("/seller/properties");
+      } else if (status === 401) {
+        notifyError("Session expired.");
+        navigate("/seller/login");
+      } else {
+        notifyError("Failed to update. Please try again.");
+      }
     } finally {
       setSubmitting(false);
     }

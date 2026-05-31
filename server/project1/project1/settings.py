@@ -2,12 +2,17 @@
 Django settings for project1.
 """
 
+import sys
 from pathlib import Path
 
 from decouple import Csv, config
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+VENDOR_SITE_PACKAGES = BASE_DIR.parent / "vendor_py"
+
+if VENDOR_SITE_PACKAGES.exists():
+    sys.path.insert(0, str(VENDOR_SITE_PACKAGES))
 
 SECRET_KEY = config(
     "SECRET_KEY",
@@ -249,3 +254,4 @@ CSRF_COOKIE_SECURE = config("CSRF_COOKIE_SECURE", default=False, cast=bool)
 
 OLLAMA_BASE_URL = config("OLLAMA_BASE_URL", default="http://localhost:11434")
 AI_MODEL = config("AI_MODEL", default="mistral")
+APP_BASE_URL = config("APP_BASE_URL", default="http://127.0.0.1:8000")

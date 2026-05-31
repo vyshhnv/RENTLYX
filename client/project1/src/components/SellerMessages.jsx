@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import Bar from "./Bar";
+import { API_BASE_URL } from "../config/api";
 
 function SellerMessages() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ function SellerMessages() {
       const token = sessionStorage.getItem("token");
       if (!token) { navigate("/seller/login"); return; }
       try {
-        const res = await axios.get("http://127.0.0.1:8000/api/chat/rooms/", { headers: { Authorization: `Token ${token}` } });
+        const res = await axios.get(`${API_BASE_URL}/chat/rooms/`, { headers: { Authorization: `Token ${token}` } });
         setChatRooms(res.data);
       } catch (err) { console.error("Failed to load chat rooms", err); }
       finally { setLoading(false); }

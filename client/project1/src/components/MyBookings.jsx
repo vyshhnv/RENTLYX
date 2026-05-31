@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Bar from "./Bar";
+import { API_BASE_URL } from "../config/api";
+import { getErrorMessage, notifyError } from "../utils/notify";
 import {
   MapPin, Clock, CheckCircle2, XCircle, RefreshCw,
   IndianRupee, Home, ArrowLeft, Hourglass, ShieldCheck,
@@ -64,13 +66,13 @@ function ReviewModal({ booking, existingReview, onClose, onSubmitted }) {
     try {
       let res;
       if (isEdit) {
-        res = await fetch(`http://127.0.0.1:8000/api/reviews/${existingReview.id}/update/`, {
+        res = await fetch(`${API_BASE_URL}/reviews/${existingReview.id}/update/`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json", "Authorization": `Token ${token}` },
           body: JSON.stringify({ rating, comment }),
         });
       } else {
-        res = await fetch(`http://127.0.0.1:8000/api/reviews/submit/`, {
+        res = await fetch(`${API_BASE_URL}/reviews/submit/`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Token ${token}` },
           body: JSON.stringify({
@@ -196,7 +198,7 @@ export default function MyBookings() {
   const fetchBookings = useCallback(async (token) => {
     try {
       setLoading(true);
-      const res = await fetch("http://127.0.0.1:8000/api/bookings/my/", {
+      const res = await fetch(`${API_BASE_URL}/bookings/my/`, {
         headers: { "Content-Type": "application/json", "Authorization": `Token ${token}` },
       });
       if (res.status === 401) { setError("Session expired or logged in as seller."); setLoading(false); return; }
@@ -213,7 +215,7 @@ export default function MyBookings() {
 
   const fetchMyReviews = useCallback(async (token) => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/reviews/my/", {
+      const res = await fetch(`${API_BASE_URL}/reviews/my/`, {
         headers: { "Authorization": `Token ${token}` },
       });
       if (res.ok) {
@@ -236,7 +238,7 @@ export default function MyBookings() {
     const token = getUserToken();
     setCancelling(bookingId);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/bookings/${bookingId}/cancel/`, {
+      const res = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Token ${token}` },
       });
@@ -246,10 +248,10 @@ export default function MyBookings() {
           prev.map((b) => (b.id === bookingId ? { ...b, status: data.status } : b))
         );
       } else {
-        alert(data?.error || "Failed to cancel booking.");
+        notifyError(data?.error || "Failed to cancel booking.");
       }
-    } catch {
-      alert("Something went wrong. Please try again.");
+    } catch (error) {
+      notifyError(getErrorMessage(error, "Something went wrong. Please try again."));
     } finally {
       setCancelling(null);
     }

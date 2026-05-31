@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.conf import settings
 from .models import Booking
 
 
@@ -49,7 +50,7 @@ class BookingPropertySerializer(serializers.Serializer):
             request = self.context.get('request')
             if request:
                 return request.build_absolute_uri(obj.property_image.url)
-            return f"http://127.0.0.1:8000{obj.property_image.url}"
+            return f"{settings.APP_BASE_URL}{obj.property_image.url}"
         except Exception:
             return None
 
@@ -114,7 +115,7 @@ class BookingSerializer(serializers.ModelSerializer):
                     image_url = (
                         request.build_absolute_uri(prop.property_image.url)
                         if request
-                        else f"http://127.0.0.1:8000{prop.property_image.url}"
+                        else f"{settings.APP_BASE_URL}{prop.property_image.url}"
                     )
             except Exception:
                 pass
@@ -139,7 +140,7 @@ class BookingSerializer(serializers.ModelSerializer):
             request = self.context.get('request')
             if request:
                 return request.build_absolute_uri(image.url)
-            return f"http://127.0.0.1:8000{image.url}"
+            return f"{settings.APP_BASE_URL}{image.url}"
         except Exception:
             return None
 
