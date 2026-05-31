@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.conf import settings
 from app1.models import Properties, Seller, EmailOTP, PropertyImage, Complaint, TaxReceiptVerification
 from django.contrib.auth.password_validation import validate_password
 from django.core.mail import send_mail
@@ -170,7 +171,7 @@ class PropertyImageSerializer(serializers.ModelSerializer):
             return (
                 request.build_absolute_uri(obj.image.url)
                 if request
-                else f"http://127.0.0.1:8000{obj.image.url}"
+                else f"{settings.APP_BASE_URL}{obj.image.url}"
             )
         return None
 

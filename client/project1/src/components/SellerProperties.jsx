@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { listSellerProperties, deleteProperty } from "../api/fetchApi";
 import Bar from "./Bar";
 import { MapPin, Plus, Edit, ImageOff, Trash2, AlertTriangle, X } from "lucide-react";
+import { getErrorMessage, notifyError } from "../utils/notify";
 
 function SellerProperties() {
   const [properties, setProperties] = useState([]);
@@ -34,7 +35,7 @@ function SellerProperties() {
   const confirmDelete = async () => {
     if (!propertyToDelete) return;
     const token = sessionStorage.getItem("token");
-    if (!token) { alert("Please log in again to delete properties"); navigate("/seller/login"); return; }
+    if (!token) { notifyError("Please log in again to delete properties."); navigate("/seller/login"); return; }
     try {
       setDeleting(propertyToDelete.id);
       await deleteProperty(propertyToDelete.id, token);
@@ -42,7 +43,7 @@ function SellerProperties() {
       closeDeleteModal();
     } catch (error) {
       console.error("Delete failed:", error);
-      alert("Failed to delete property. Please try again.");
+      notifyError(getErrorMessage(error, "Failed to delete property. Please try again."));
     } finally { setDeleting(null); }
   };
 

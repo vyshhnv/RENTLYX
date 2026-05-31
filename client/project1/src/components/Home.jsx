@@ -9,10 +9,9 @@ import {
   Trees, Layers, House, LifeBuoy
 } from "lucide-react";
 import { listAllProperty } from "../api/fetchApi";
+import { API_BASE_URL as BASE_URL } from "../config/api";
 
 const INITIAL_VISIBLE = 12;
-const BASE_URL = "http://127.0.0.1:8000/api";
-
 // ── All localities in Kozhikode ───────────────────────────────────────────────
 const KOZHIKODE_LOCALITIES = [
   "Balussery", "Beach Road", "Bilathikulam", "Calicut University",

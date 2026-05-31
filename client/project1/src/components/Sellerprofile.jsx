@@ -2,13 +2,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Bar from "./Bar";
+import { API_BASE_URL as BASE_URL } from "../config/api";
 import {
   User, Mail, AtSign, Edit3, Save, X, Phone, MapPin,
   ShieldCheck, Building2, Home, BookOpen, MessageSquare,
   ArrowRight, CheckCircle2, Loader2, List, AlertCircle, ArrowLeft
 } from "lucide-react";
-
-const BASE_URL = "http://127.0.0.1:8000/api";
 
 function SellerProfile() {
   const navigate = useNavigate();

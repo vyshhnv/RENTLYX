@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { getProperty } from "../api/fetchApi";
+import { buildApiUrl } from "../config/api";
+import { getErrorMessage, notifyError } from "../utils/notify";
 import Bar from "./Bar";
 
 function ContactSeller() {
@@ -32,23 +34,23 @@ function ContactSeller() {
 
   const handleCallSeller = () => {
     if (seller?.phone) window.location.href = `tel:${seller.phone}`;
-    else alert("Phone number not available. Please use chat instead.");
+    else notifyError("Phone number not available. Please use chat instead.");
   };
 
   const handleChatWithSeller = async () => {
     const token = sessionStorage.getItem("token");
-    if (!token) { alert("Please login to chat with seller"); navigate("/login"); return; }
+    if (!token) { notifyError("Please log in to chat with the seller."); navigate("/login"); return; }
     const sellerId = seller?.id || seller?.user?.id;
-    if (!sellerId) { alert("Seller information not available."); return; }
+    if (!sellerId) { notifyError("Seller information is not available."); return; }
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/chat/rooms/get_or_create/",
+      const response = await axios.post(buildApiUrl("/chat/rooms/get_or_create/"),
         { property_id: propertyId, seller_id: sellerId },
         { headers: { Authorization: `Token ${token}` } }
       );
       navigate(`/chat-room/${response.data.id}`);
     } catch (err) {
       console.error("Chat error:", err.response?.data);
-      alert("Failed to start chat. Please try again later.");
+      notifyError(getErrorMessage(err, "Failed to start chat. Please try again later."));
     }
   };
 

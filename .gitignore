@@ -1,0 +1,9 @@
+.venv/
+server/.venv-codex/
+server/vendor_py/
+client/project1/dist/
+server/project1/logs/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

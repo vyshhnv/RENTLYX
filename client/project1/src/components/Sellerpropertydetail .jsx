@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { getProperty } from "../api/fetchApi";
+import { buildApiUrl } from "../config/api";
 import Bar from "./Bar";
 import ImageCarousel from "./ImageCarousel";
 import RentlyXMascot from "./RentlyXMascot";
@@ -49,7 +50,7 @@ function ReviewsSection({ propertyId }) {
 
   useEffect(() => {
     if (!propertyId) return;
-    fetch(`http://127.0.0.1:8000/api/reviews/property/${propertyId}/`)
+    fetch(buildApiUrl(`/reviews/property/${propertyId}/`))
       .then((r) => r.json())
       .then((data) => {
         setReviews(data.reviews || []);

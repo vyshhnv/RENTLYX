@@ -2,12 +2,12 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Bar from "./Bar";
+import { API_BASE_URL as BASE_URL, buildMediaUrl } from "../config/api";
+import { getErrorMessage, notifyError } from "../utils/notify";
 import {
   CheckCircle2, XCircle, Clock, Phone, Mail,
   Home, ChevronLeft, AlertCircle, RefreshCw, Ban, AlertTriangle
 } from "lucide-react";
-
-const BASE_URL = "http://127.0.0.1:8000/api";
 
 const STATUS_CONFIG = {
   pending: { label: "Pending", color: "bg-amber-100 text-amber-700 border-amber-200", icon: Clock },
@@ -64,7 +64,7 @@ function SellerBookings() {
       );
       await fetchBookings();
     } catch (err) {
-      alert(err?.response?.data?.error || "Action failed.");
+      notifyError(getErrorMessage(err, "Action failed."));
     } finally {
       setActionLoading(null);
       setConfirmReject(null);
@@ -217,7 +217,7 @@ function SellerBookings() {
                             src={
                               booking.property_image.startsWith("http")
                                 ? booking.property_image
-                                : `http://127.0.0.1:8000${booking.property_image}`
+                                : buildMediaUrl(booking.property_image)
                             }
                             alt={booking.property_name}
                             className="w-full h-full object-cover"

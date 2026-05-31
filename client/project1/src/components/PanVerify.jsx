@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { verifyPan } from "../api/fetchApi";
 import Bar from "./Bar";
 import { ShieldCheck, Loader2, CreditCard } from "lucide-react";
+import { API_BASE_URL } from "../config/api";
 
 function PanVerify() {
   const [pan, setPan] = useState("");
@@ -16,7 +17,7 @@ function PanVerify() {
       const sellerId = sessionStorage.getItem("seller_id");
       if (!token || !sellerId) { navigate("/seller/login"); return; }
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/seller/${sellerId}/`, {
+        const res = await fetch(`${API_BASE_URL}/seller/${sellerId}/`, {
           headers: { Authorization: `Token ${token}` }
         });
         const data = await res.json();

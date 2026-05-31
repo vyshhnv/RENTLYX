@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { createProperty } from "../api/fetchApi";
+import { buildApiUrl } from "../config/api";
 import Bar from "./Bar";
 import { Upload, MapPin, FileText, Image as ImageIcon, CheckCircle2, Calendar, Search, X, Loader2, Plus, Trash2, ShieldCheck, ArrowLeft } from "lucide-react";
 import L from "leaflet";
@@ -339,7 +340,7 @@ export default function SellerAddProperty() {
       if (propertyId && galleryImages.length > 1) {
         const galleryForm = new FormData();
         galleryImages.slice(1).forEach(img => galleryForm.append("images", img.file));
-        await fetch(`http://127.0.0.1:8000/api/properties/${propertyId}/images/`, {
+        await fetch(buildApiUrl(`/properties/${propertyId}/images/`), {
           method: "POST",
           headers: { Authorization: `Token ${token}` },
           body: galleryForm,

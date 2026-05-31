@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Send, ArrowLeft, Phone, MoreVertical, Paperclip } from "lucide-react";
 import axios from "axios";
 import Bar from "./Bar";
+import { API_BASE_URL, buildWsUrl } from "../config/api";
 
 function ChatRoom() {
   const { chatRoomId } = useParams();
@@ -33,7 +34,7 @@ function ChatRoom() {
       const token = sessionStorage.getItem("token");
       if (!token) { navigate("/login"); return; }
       try {
-        const roomRes = await axios.get(`http://127.0.0.1:8000/api/chat/rooms/${chatRoomId}/`, { headers: { Authorization: `Token ${token}` } });
+        const roomRes = await axios.get(`${API_BASE_URL}/chat/rooms/${chatRoomId}/`, { headers: { Authorization: `Token ${token}` } });
         const roomData = roomRes.data;
         setChatRoom(roomData);
         setOtherUser(roomData.other_user);
@@ -49,9 +50,9 @@ function ChatRoom() {
         }
         if (myUserId) setResolvedUserId(myUserId);
 
-        const messagesRes = await axios.get(`http://127.0.0.1:8000/api/chat/messages/?chat_room=${chatRoomId}`, { headers: { Authorization: `Token ${token}` } });
+        const messagesRes = await axios.get(`${API_BASE_URL}/chat/messages/?chat_room=${chatRoomId}`, { headers: { Authorization: `Token ${token}` } });
         setMessages(messagesRes.data);
-        await axios.post(`http://127.0.0.1:8000/api/chat/rooms/${chatRoomId}/mark_read/`, {}, { headers: { Authorization: `Token ${token}` } });
+        await axios.post(`${API_BASE_URL}/chat/rooms/${chatRoomId}/mark_read/`, {}, { headers: { Authorization: `Token ${token}` } });
       } catch (err) { console.error("Failed to load chat data", err); }
       finally { setLoading(false); }
     };
@@ -61,7 +62,7 @@ function ChatRoom() {
   useEffect(() => {
     const wsToken = sessionStorage.getItem("token");
     if (!wsToken) return;
-    const ws = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${chatRoomId}/?token=${wsToken}`);
+    const ws = new WebSocket(buildWsUrl(`/ws/chat/${chatRoomId}/?token=${wsToken}`));
     ws.onopen = () => { setWsConnected(true); };
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -69,7 +70,7 @@ function ChatRoom() {
         setMessages((prev) => [...prev, { id: data.message_id, sender: data.sender_id, sender_name: data.sender_name, content: data.message, timestamp: data.timestamp, is_read: false }]);
         if (data.sender_id !== resolvedUserIdRef.current) {
           const markToken = sessionStorage.getItem("token");
-          axios.post(`http://127.0.0.1:8000/api/chat/rooms/${chatRoomId}/mark_read/`, {}, { headers: { Authorization: `Token ${markToken}` } });
+          axios.post(`${API_BASE_URL}/chat/rooms/${chatRoomId}/mark_read/`, {}, { headers: { Authorization: `Token ${markToken}` } });
         }
       } else if (data.type === "typing") {
         if (data.user_id !== resolvedUserIdRef.current) setIsTyping(data.is_typing);
@@ -88,7 +89,7 @@ function ChatRoom() {
       wsRef.current.send(JSON.stringify({ type: "message", message: newMessage, sender_id: resolvedUserIdRef.current }));
     } else {
       const fallbackToken = sessionStorage.getItem("token");
-      axios.post(`http://127.0.0.1:8000/api/chat/messages/`, { chat_room: chatRoomId, content: newMessage }, { headers: { Authorization: `Token ${fallbackToken}` } })
+      axios.post(`${API_BASE_URL}/chat/messages/`, { chat_room: chatRoomId, content: newMessage }, { headers: { Authorization: `Token ${fallbackToken}` } })
         .then((res) => setMessages((prev) => [...prev, res.data]))
         .catch((err) => console.error("Failed to send message", err));
     }

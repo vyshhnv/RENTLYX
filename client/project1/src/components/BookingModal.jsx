@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { X, Shield, CreditCard, CheckCircle, Info } from "lucide-react";
 import commonApi from "../api/commonApi";
-
-const BASE_URL = "http://127.0.0.1:8000/api";
+import { API_BASE_URL as BASE_URL } from "../config/api";
+import { getErrorMessage, notifyError } from "../utils/notify";
 
 function BookingModal({ property, onClose, onSuccess }) {
   const [step, setStep] = useState(1);
@@ -42,7 +42,11 @@ function BookingModal({ property, onClose, onSuccess }) {
       }, token);
       const orderData = orderRes.data;
       const loaded = await loadRazorpayScript();
-      if (!loaded) { alert("Failed to load payment gateway."); setLoading(false); return; }
+      if (!loaded) {
+        notifyError("Failed to load payment gateway.");
+        setLoading(false);
+        return;
+      }
 
       const razorpay = new window.Razorpay({
         key: orderData.key, amount: orderData.amount, currency: orderData.currency,
@@ -62,7 +66,7 @@ function BookingModal({ property, onClose, onSuccess }) {
             setStep(3);
             onSuccess && onSuccess();
           } catch {
-            alert("Payment verification failed. Contact support with your payment ID: " + response.razorpay_payment_id);
+            notifyError(`Payment verification failed. Keep this payment ID: ${response.razorpay_payment_id}`);
             setStep(1);
           }
         },
@@ -70,7 +74,7 @@ function BookingModal({ property, onClose, onSuccess }) {
       });
       razorpay.open();
     } catch (err) {
-      alert(err?.response?.data?.error || "Something went wrong.");
+      notifyError(getErrorMessage(err, "Something went wrong."));
     } finally { setLoading(false); }
   };
 

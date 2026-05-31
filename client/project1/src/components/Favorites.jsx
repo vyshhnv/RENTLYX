@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Bar from "./Bar";
+import { buildMediaUrl } from "../config/api";
 import { listAllProperty } from "../api/fetchApi";
 import {
   Heart, MapPin, BedDouble, Bath, Maximize,
@@ -39,7 +40,7 @@ function Favorites() {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "https://via.placeholder.com/400";
     if (imagePath.startsWith("http")) return imagePath;
-    return `http://127.0.0.1:8000${imagePath}`;
+    return buildMediaUrl(imagePath);
   };
 
   return (

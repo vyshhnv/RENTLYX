@@ -16,6 +16,8 @@ import {
   MessageSquare, Send, User
 } from "lucide-react";
 import axios from "axios";
+import { API_BASE_URL as BASE_URL } from "../config/api";
+import { notifyError } from "../utils/notify";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -28,8 +30,6 @@ const leafletZIndexFix = `
   .leaflet-pane, .leaflet-top, .leaflet-bottom { z-index: 1 !important; }
   .leaflet-control { z-index: 2 !important; }
 `;
-
-const BASE_URL = "http://127.0.0.1:8000/api";
 
 const predictPrice = async (data) => {
   const res = await fetch(`${BASE_URL}/ai/predict-price/`, {
@@ -583,7 +583,7 @@ function PropertyDetail() {
     );
     return (
       <button onClick={() => {
-        if (!isLoggedIn) { alert("Please log in to book this property."); navigate("/login"); return; }
+        if (!isLoggedIn) { notifyError("Please log in to book this property."); navigate("/login"); return; }
         setShowBookingModal(true);
       }}
         className="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-1 flex items-center justify-center gap-2">

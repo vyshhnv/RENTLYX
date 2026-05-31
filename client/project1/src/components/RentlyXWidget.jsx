@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Sparkles, Send, Trash2, X } from "lucide-react";
 import RentlyXMascot from "./RentlyXMascot";
+import { buildApiUrl } from "../config/api";
 
-const API = "http://127.0.0.1:8001";
-const DJANGO = "http://127.0.0.1:8000";
+const AI_ASK_URL = buildApiUrl("/ai/ask/");
+const CHAT_HISTORY_URL = buildApiUrl("/ai/chat-history/");
 
 const getSessionId = () => {
   const token = sessionStorage.getItem("token");
@@ -51,7 +52,7 @@ export default function RentlyXWidget() {
     const loadHistory = async () => {
       if (!sessionId) { setHistoryLoaded(true); return; }
       try {
-        const res = await fetch(`${DJANGO}/api/ai/chat-history/?session_id=${sessionId}`);
+        const res = await fetch(`${CHAT_HISTORY_URL}?session_id=${sessionId}`);
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setMessages(data.map(m => ({ role: m.role, text: m.message })));
@@ -74,13 +75,29 @@ export default function RentlyXWidget() {
     setMessages(m => [...m, { role: "user", text: q }]);
     setLoading(true);
     try {
-      const res = await fetch(`${API}/chat`, {
+      if (sessionId) {
+        await fetch(CHAT_HISTORY_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId, role: "user", message: q }),
+        });
+      }
+
+      const res = await fetch(AI_ASK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q, session_id: sessionId || "guest" }),
+        body: JSON.stringify({ message: q, session_id: sessionId || "guest" }),
       });
       const data = await res.json();
-      setMessages(m => [...m, { role: "bot", text: data.answer }]);
+      const answer = data.answer || "Sorry, I couldn't find an answer right now.";
+      setMessages(m => [...m, { role: "bot", text: answer }]);
+      if (sessionId) {
+        await fetch(CHAT_HISTORY_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId, role: "bot", message: answer }),
+        });
+      }
     } catch {
       setMessages(m => [...m, { role: "bot", text: "Sorry, I couldn't connect to the server." }]);
     } finally {
@@ -91,7 +108,7 @@ export default function RentlyXWidget() {
   const clearHistory = async () => {
     if (!sessionId) return;
     try {
-      await fetch(`${DJANGO}/api/ai/chat-history/?session_id=${sessionId}`, { method: "DELETE" });
+      await fetch(`${CHAT_HISTORY_URL}?session_id=${sessionId}`, { method: "DELETE" });
       setMessages([{ role: "bot", text: "Hi! Ask me anything about rentals in Kozhikode 👋" }]);
     } catch (err) {
       console.error("Failed to clear history:", err);

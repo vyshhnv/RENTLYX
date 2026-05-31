@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Bar from "./Bar";
+import { API_BASE_URL } from "../config/api";
 import {
   PlusCircle, List, Home, ArrowRight,
   ShieldCheck, User, MessageCircle, Bookmark, AlertCircle,
@@ -26,7 +27,7 @@ function SellerDashboard() {
     const fetchSellerStatus = async () => {
       try {
         const res = await axios.get(
-          `http://127.0.0.1:8000/api/seller/${sellerId}/`,
+          `${API_BASE_URL}/seller/${sellerId}/`,
           { headers: { Authorization: `Token ${token}` } }
         );
         if (res.data) {
@@ -47,7 +48,7 @@ function SellerDashboard() {
 
     const fetchUnreadCount = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/api/chat/rooms/", { headers: { Authorization: `Token ${token}` } });
+        const res = await axios.get(`${API_BASE_URL}/chat/rooms/`, { headers: { Authorization: `Token ${token}` } });
         const total = res.data.reduce((sum, room) => sum + (room.unread_count || 0), 0);
         setUnreadCount(total);
       } catch (err) {
@@ -57,7 +58,7 @@ function SellerDashboard() {
 
     const fetchPendingBookings = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/api/bookings/seller/", { headers: { Authorization: `Token ${token}` } });
+        const res = await axios.get(`${API_BASE_URL}/bookings/seller/`, { headers: { Authorization: `Token ${token}` } });
         const pending = res.data.filter((b) => b.status === "pending").length;
         setPendingBookingsCount(pending);
       } catch (err) {
@@ -67,7 +68,7 @@ function SellerDashboard() {
 
     const fetchListingStatuses = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/api/seller/my-properties/", {
+        const res = await axios.get(`${API_BASE_URL}/seller/my-properties/`, {
           headers: { Authorization: `Token ${token}` }
         });
         const props = Array.isArray(res.data) ? res.data : res.data.results || [];
